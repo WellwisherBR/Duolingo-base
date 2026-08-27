@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lingolingo - Escolha seu idioma</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f0f4f8;
+      --card-bg: #ffffff;
+      --text: #3c3c3c;
+      --text-muted: #9a9a9a;
+      --border: #e5e5e5;
+      --shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+      --accent: #58cc02;
+    }
+
+    [data-theme="dark"] {
+      --bg: #0f1620;
+      --card-bg: #1a2431;
+      --text: #f1f7fb;
+      --text-muted: #8ea1ad;
+      --border: #2b3a4a;
+      --shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Nunito', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+      transition: background 0.3s, color 0.3s;
+    }
+
+    .theme-toggle {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: var(--card-bg);
+      border: 2px solid var(--border);
+      border-radius: 50%;
+      width: 44px;
+      height: 44px;
+      font-size: 1.2rem;
+      cursor: pointer;
+      transition: transform 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .theme-toggle:hover { transform: rotate(20deg) scale(1.1); }
+
+    .hero {
+      text-align: center;
+      margin-bottom: 3rem;
+    }
+
+    .hero-logo {
+      font-size: 3rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .hero h1 {
+      font-size: 2.2rem;
+      font-weight: 900;
+      background: linear-gradient(90deg, #58cc02, #1cb0f6, #ce82ff);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      margin-bottom: 0.5rem;
+    }
+
+    .hero p {
+      color: var(--text-muted);
+      font-size: 1.1rem;
+      font-weight: 700;
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 1.5rem;
+      max-width: 900px;
+      width: 100%;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 2px solid var(--border);
+      border-radius: 24px;
+      padding: 2.5rem 2rem;
+      text-align: center;
+      text-decoration: none;
+      color: var(--text);
+      box-shadow: var(--shadow);
+      transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 5px;
+      border-radius: 24px 24px 0 0;
+    }
+
+    .card.italiano::before { background: linear-gradient(90deg, #008C45, #F4F5F0, #CD212A); }
+    .card.ingles::before { background: linear-gradient(90deg, #00247D, #CF142B); }
+    .card.espanhol::before { background: linear-gradient(90deg, #AA151B, #F1BF00); }
+
+    .card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.15);
+    }
+
+    .card.italiano:hover { border-color: #008C45; }
+    .card.ingles:hover { border-color: #00247D; }
+    .card.espanhol:hover { border-color: #AA151B; }
+
+    .card-flag {
+      font-size: 3.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .card-title {
+      font-size: 1.4rem;
+      font-weight: 900;
+      margin-bottom: 0.4rem;
+    }
+
+    .card-desc {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      font-weight: 600;
+      margin-bottom: 1.2rem;
+    }
+
+    .card-btn {
+      display: inline-block;
+      padding: 10px 28px;
+      border-radius: 14px;
+      font-weight: 800;
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: white;
+      transition: transform 0.1s;
+    }
+
+    .card.italiano .card-btn { background: #008C45; box-shadow: 0 4px 0 #006633; }
+    .card.ingles .card-btn { background: #00247D; box-shadow: 0 4px 0 #001a5e; }
+    .card.espanhol .card-btn { background: #AA151B; box-shadow: 0 4px 0 #7a0f13; }
+
+    .card:active .card-btn { transform: translateY(2px); box-shadow: none; }
+
+    .footer {
+      margin-top: 3rem;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+
+    @media (max-width: 600px) {
+      .hero h1 { font-size: 1.6rem; }
+      .cards { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <button class="theme-toggle" id="btn-theme" title="Alternar tema">🌙</button>
+
+  <div class="hero">
+    <div class="hero-logo">🌍</div>
+    <h1>Lingolingo</h1>
+    <p>Escolha um idioma e comece a aprender!</p>
+  </div>
+
+  <div class="cards">
+    <a href="ITALIANO/index.html" class="card italiano">
+      <div class="card-flag">🇮🇹</div>
+      <div class="card-title">Italiano</div>
+      <div class="card-desc">174 lições · 1.352 palavras · A1 → C2</div>
+      <span class="card-btn">Começar</span>
+    </a>
+
+    <a href="INGLES/index.html" class="card ingles">
+      <div class="card-flag">🇺🇸</div>
+      <div class="card-title">Inglês</div>
+      <div class="card-desc">173 lições · 1.730 palavras · A1 → C2</div>
+      <span class="card-btn">Começar</span>
+    </a>
+
+    <a href="ESPANHOL/index.html" class="card espanhol">
+      <div class="card-flag">🇪🇸</div>
+      <div class="card-title">Espanhol</div>
+      <div class="card-desc">173 lições · 1.730 palavras · A1 → C2</div>
+      <span class="card-btn">Começar</span>
+    </a>
+  </div>
+
+  <div class="footer">700h de conteúdo por idioma · Sistema de mastery e revisão espaçada</div>
+
+  <script>
+    const btn = document.getElementById("btn-theme");
+    const saved = localStorage.getItem("lingolingo_theme");
+    if (saved) document.documentElement.setAttribute("data-theme", saved);
+    else if (window.matchMedia("(prefers-color-scheme: dark)").matches)
+      document.documentElement.setAttribute("data-theme", "dark");
+
+    function updateIcon() {
+      const dark = document.documentElement.getAttribute("data-theme") === "dark";
+      btn.textContent = dark ? "☀️" : "🌙";
+    }
+    updateIcon();
+
+    btn.onclick = () => {
+      const current = document.documentElement.getAttribute("data-theme");
+      const next = current === "dark" ? "light" : "dark";
+      document.documentElement.setAttribute("data-theme", next);
+      localStorage.setItem("lingolingo_theme", next);
+      updateIcon();
+    };
+  </script>
+</body>
+</html>

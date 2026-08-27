@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ingleslingo - Aprenda Inglês</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <nav class="topbar">
+    <div class="topbar-left">
+      <a class="btn-back" href="../index.html" title="Voltar aos idiomas">←</a>
+      <div class="logo">🇺🇸 Ingleslingo</div>
+    </div>
+    <div class="stats">
+      <div class="stat-item" title="Sequência diária">
+        <span class="icon">🔥</span>
+        <span id="stat-streak" class="stat-val">0</span>
+      </div>
+      <div class="stat-item" title="XP Total">
+        <span class="icon">⚡</span>
+        <span id="stat-xp" class="stat-val">0 XP</span>
+      </div>
+      <button class="btn-theme" id="btn-theme" title="Alternar tema">🌙</button>
+    </div>
+  </nav>
+
+  <main id="dashboard" class="screen active">
+
+    <div class="hero-panel">
+      <div class="hero-ring">
+        <svg viewBox="0 0 120 120">
+          <circle class="ring-bg" cx="60" cy="60" r="52"/>
+          <circle class="ring-fg" id="fluency-ring" cx="60" cy="60" r="52"/>
+        </svg>
+        <div class="ring-label">
+          <span class="ring-pct" id="fluency-text">0%</span>
+          <span class="ring-sub">fluente</span>
+        </div>
+      </div>
+
+      <div class="hero-metrics">
+        <div class="metric">
+          <span class="metric-icon">⏱️</span>
+          <div>
+            <div class="metric-val"><span id="stat-completed-hours">0h</span> / <span id="stat-total-hours">0h</span></div>
+            <div class="metric-label">horas estudadas</div>
+          </div>
+        </div>
+        <div class="metric">
+          <span class="metric-icon">⚡</span>
+          <div>
+            <div class="metric-val"><span id="daily-xp">0</span>/50 XP</div>
+            <div class="metric-label">meta diária</div>
+            <div class="metric-bar"><div class="metric-bar-fill" id="daily-goal-fill" style="width:0%"></div></div>
+          </div>
+        </div>
+        <div class="metric">
+          <span class="metric-icon">📚</span>
+          <div>
+            <div class="metric-val"><span id="stat-total-lessons">0</span> lições · <span id="stat-total-words">0</span> palavras</div>
+            <div class="metric-label">conteúdo total (A1 → C2)</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="hero-actions">
+        <button class="btn btn-blue" id="btn-review">🔁 Revisar</button>
+      </div>
+    </div>
+
+    <div class="path-container" id="path-container"></div>
+  </main>
+
+  <section id="lesson-screen" class="screen">
+    <header class="lesson-header">
+      <button class="btn-icon" id="btn-exit-lesson">✕</button>
+      <div class="progress-container">
+        <div class="progress-fill" id="lesson-progress-bar" style="width:0%"></div>
+      </div>
+      <div class="lesson-hearts">
+        <span>❌</span> <span id="lesson-errors-display">0</span>
+      </div>
+    </header>
+
+    <div class="lesson-content" id="lesson-area"></div>
+
+    <footer class="lesson-footer" id="lesson-footer">
+      <div class="feedback-area" id="feedback-area">
+        <div class="feedback-icon" id="feedback-icon"></div>
+        <div class="feedback-text">
+          <h3 id="feedback-title"></h3>
+          <p id="feedback-desc"></p>
+        </div>
+      </div>
+      <button class="btn btn-green btn-lg" id="btn-action">Verificar</button>
+    </footer>
+  </section>
+
+  <div id="toast" class="toast"></div>
+
+  <script src="js/content.js"></script>
+  <script src="js/content_extra.js"></script>
+  <script src="js/content_extra_gen.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/state.js"></script>
+  <script src="js/engine.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
