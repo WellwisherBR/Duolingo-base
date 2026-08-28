@@ -7,67 +7,114 @@ const LEVEL_META = {
   c2: { title: "C2 · Fluente", desc: "Domínio total da língua", icon: "👑", color: "#f5a623", hours: 100 }
 };
 
-const LESSON_SIZE = 8;
-
-function chunk(arr, size) {
-  const out = [];
-  for (let i = 0; i < arr.length; i += size) out.push(arr.slice(i, i + size));
-  return out;
+function legacyToPhrase(pair) {
+  let it = String(pair[0]).trim();
+  let pt = String(pair[1]).trim();
+  if (!/[.!?…]$/.test(it)) it = it.charAt(0).toUpperCase() + it.slice(1) + ".";
+  else it = it.charAt(0).toUpperCase() + it.slice(1);
+  pt = pt.charAt(0).toUpperCase() + pt.slice(1);
+  if (!/[.!?…]$/.test(pt)) pt += ".";
+  return { it, pt };
 }
 
-function getMergedContent() {
-  const merged = {};
-  const extra = typeof EXTRA_CONTENT !== "undefined" ? EXTRA_CONTENT : {};
-  const ids = new Set([...Object.keys(CONTENT), ...Object.keys(extra)]);
-  ids.forEach(lid => {
-    merged[lid] = { ...(CONTENT[lid] || {}), ...(extra[lid] || {}) };
+function convertLegacyContent() {
+  const sources = [];
+  if (typeof CONTENT !== "undefined") sources.push(CONTENT);
+  if (typeof EXTRA_CONTENT !== "undefined") sources.push(EXTRA_CONTENT);
+  const raw = [];
+  const levelOrder = ["a1", "a2", "b1", "b2", "c1", "c2"];
+  const unitCounters = { a1: 0, a2: 0, b1: 0, b2: 0, c1: 0, c2: 0 };
+  const icons = ["📖", "🗣️", "🧩", "🏠", "🍝", "🎭", "🚆", "🛍️", "🎨", "🌍"];
+  const lessonsByLevel = { a1: 5, a2: 6, b1: 7, b2: 8, c1: 9, c2: 10 };
+
+  sources.forEach(src => {
+    levelOrder.forEach(lid => {
+      const lessons = src[lid];
+      if (!lessons) return;
+      const LESSONS_PER_TOPIC = lessonsByLevel[lid] || 5;
+      Object.keys(lessons).forEach(title => {
+        unitCounters[lid]++;
+        const unitNum = unitCounters[lid];
+        const pairs = lessons[title];
+        const allPhrases = pairs
+          .filter(p => String(p[0]).trim().split(/\s+/).length >= 2)
+          .map(legacyToPhrase);
+
+        const chunkSize = Math.max(1, Math.ceil(pairs.length / LESSONS_PER_TOPIC));
+        const chunks = [];
+        for (let i = 0; i < pairs.length; i += chunkSize) {
+          chunks.push(pairs.slice(i, i + chunkSize));
+        }
+
+        chunks.forEach((chunk, cIdx) => {
+          const words = chunk.map(p => ({ it: p[0], pt: p[1] }));
+          const phrases = [];
+          if (allPhrases.length > 0) {
+            const phraseIdx = cIdx % allPhrases.length;
+            if (cIdx < allPhrases.length) phrases.push(allPhrases[phraseIdx]);
+          }
+          raw.push({
+            level: lid.toUpperCase(),
+            unit: unitNum,
+            lessonId: `${lid.toUpperCase()}-U${unitNum}L${cIdx + 1}`,
+            title: chunks.length > 1 ? `${title} ${cIdx + 1}` : title,
+            icon: icons[(unitNum - 1) % icons.length],
+            words,
+            phrases
+          });
+        });
+      });
+    });
   });
-  return merged;
+  return raw;
 }
 
-function getMergedPhrases() {
-  const merged = {};
-  const extra = typeof EXTRA_PHRASES !== "undefined" ? EXTRA_PHRASES : {};
-  const ids = new Set([...Object.keys(PHRASES), ...Object.keys(extra)]);
-  ids.forEach(lid => {
-    merged[lid] = [...(PHRASES[lid] || []), ...(extra[lid] || [])];
-  });
-  return merged;
+function getRawContent() {
+  if (typeof RAW_CONTENT !== "undefined") return RAW_CONTENT;
+  return convertLegacyContent();
+}
+
+function getRawContentExtra() {
+  if (typeof RAW_CONTENT_EXTRA !== "undefined") return RAW_CONTENT_EXTRA;
+  return [];
 }
 
 function buildLevels() {
-  const mergedContent = getMergedContent();
-  const mergedPhrases = getMergedPhrases();
+  const allLessons = [...getRawContent(), ...getRawContentExtra()];
+  const levelKeys = ["A1", "A2", "B1", "B2", "C1", "C2"];
   const levels = [];
 
-  Object.keys(LEVEL_META).forEach(lid => {
+  levelKeys.forEach(lk => {
+    const lid = lk.toLowerCase();
     const meta = LEVEL_META[lid];
-    const topics = mergedContent[lid] || {};
-    const phraseBank = mergedPhrases[lid] || [];
-    let phraseCursor = 0;
+    if (!meta) return;
 
-    const units = Object.keys(topics).map((topicName, tIdx) => {
-      const wordPairs = topics[topicName];
-      const wordChunks = chunk(wordPairs, LESSON_SIZE);
+    const lessonsForLevel = allLessons.filter(l => l.level === lk);
+    const unitMap = {};
+    lessonsForLevel.forEach(l => {
+      if (!unitMap[l.unit]) unitMap[l.unit] = [];
+      unitMap[l.unit].push(l);
+    });
 
-      const lessons = wordChunks.map((wc, cIdx) => {
-        const words = wc.map(([it, pt]) => ({ it, pt }));
-        const phrases = [];
-        if (phraseBank.length > 0) {
-          const p = phraseBank[phraseCursor % phraseBank.length];
-          phrases.push({ it: p[0], pt: p[1] });
-          phraseCursor++;
-        }
-        return {
-          id: `${lid}_t${tIdx}_l${cIdx}`,
-          title: cIdx === 0 ? topicName : `${topicName} ${cIdx + 1}`,
-          icon: topicIcon(topicName),
-          words,
-          phrases
-        };
+    const units = Object.keys(unitMap).sort((a, b) => a - b).map(uKey => {
+      const uLessons = unitMap[uKey];
+      const sorted = uLessons.sort((a, b) => {
+        const na = parseInt((a.lessonId.match(/L(\d+)$/) || [0, 0])[1]);
+        const nb = parseInt((b.lessonId.match(/L(\d+)$/) || [0, 0])[1]);
+        return na - nb;
       });
 
-      return { id: `${lid}_u${tIdx}`, title: topicName, lessons };
+      return {
+        id: `${lid}_u${uKey}`,
+        title: sorted[0] ? sorted[0].title : `Unidade ${uKey}`,
+        lessons: sorted.map(l => ({
+          id: l.lessonId,
+          title: l.title,
+          icon: l.icon || "📖",
+          words: l.words,
+          phrases: l.phrases || []
+        }))
+      };
     });
 
     levels.push({
@@ -82,34 +129,6 @@ function buildLevels() {
   });
 
   return levels;
-}
-
-function topicIcon(name) {
-  const icons = {
-    "Saudações": "👋", "Apresentações": "🗣️", "Família": "👪", "Números": "🔢",
-    "Cores": "🎨", "Comida": "🍕", "Bebidas": "🥤", "Animais": "🐶",
-    "Casa": "🏠", "Dias": "📅", "Verbos": "⚙️", "Adjetivos": "✨",
-    "Roupas": "👕", "Corpo": "🫀", "Viagem": "✈️", "Transporte": "🚆",
-    "Hotel": "🏨", "Clima": "🌤️", "Rotina": "⏰", "Compras": "🛍️",
-    "Cidade": "🏙️", "Hobbies": "🎮", "Esportes": "⚽", "Sentimentos": "💖",
-    "Saúde": "🏥", "Horas": "⌚", "Trabalho": "💼", "Profissões": "👨‍⚕️",
-    "Educação": "🎓", "Opiniões": "💬", "Passado": "🕰️", "Emoções": "🎭",
-    "Relacionamentos": "❤️", "Tecnologia": "💻", "Meio Ambiente": "🌍", "Cozinha": "🍳",
-    "Festas": "🎉", "Sociedade": "🏛️", "Economia": "📊", "Futuro": "🔮",
-    "Subjuntivo": "🤔", "Arte": "🖼️", "Ciência": "🔬", "Mídia": "📰",
-    "Expressões Idiomáticas": "🎪", "Negócios": "📈", "Argumentação": "⚖️",
-    "Literatura": "📚", "Psicologia": "🧠", "Filosofia": "🏺", "Nuances": "✨",
-    "Gírias": "🗯️", "Retórica": "🎤", "Acadêmico": "🎓", "Provérbios": "📜",
-    "Frutas": "🍎", "Vegetais": "🥦", "Objetos": "🔑", "Ações": "🏃",
-    "Restaurante": "🍽️", "Natureza": "🌳", "Direções": "🧭", "Avere": "💡",
-    "Emergências": "🚨", "Móveis": "🛋️", "Remoto": "💻", "Sistema": "🏫",
-    "Criativos": "🎨", "História": "🏛️", "Religião": "⛪", "Política": "🗳️",
-    "Ambiente": "♻️", "Direito": "⚖️", "Pronúncia": "🗣️"
-  };
-  for (const key of Object.keys(icons)) {
-    if (name.includes(key)) return icons[key];
-  }
-  return "📖";
 }
 
 const LEVELS = buildLevels();
@@ -165,3 +184,62 @@ function getContentStats() {
   LEVELS.forEach(l => totalHours += l.hours);
   return { lessons, words, phrases, totalHours };
 }
+
+function cleanWord(s) {
+  return String(s).replace(/[^A-Za-zÀ-ÿ''-]/g, "");
+}
+
+function dictKey(s) {
+  return cleanWord(s).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+}
+
+const DICT = { targetToPt: {}, ptToTarget: {} };
+
+function addDict(map, key, val) {
+  const k = dictKey(key);
+  if (k && !map[k]) map[k] = val;
+}
+
+function alignTokens(targetText, ptText) {
+  const t = targetText.split(/\s+/).map(cleanWord).filter(Boolean);
+  const p = ptText.split(/\s+/).map(cleanWord).filter(Boolean);
+  if (t.length === p.length && t.length > 1) {
+    for (let i = 0; i < t.length; i++) {
+      addDict(DICT.targetToPt, t[i], p[i]);
+      addDict(DICT.ptToTarget, p[i], t[i]);
+    }
+  }
+}
+
+function buildDictionary() {
+  getAllWords().forEach(w => {
+    addDict(DICT.targetToPt, w.it, w.pt);
+    addDict(DICT.ptToTarget, w.pt, w.it);
+    alignTokens(w.it, w.pt);
+  });
+  LEVELS.forEach(level => level.units.forEach(unit => unit.lessons.forEach(lesson => {
+    (lesson.phrases || []).forEach(p => {
+      addDict(DICT.targetToPt, p.it, p.pt);
+      addDict(DICT.ptToTarget, p.pt, p.it);
+      alignTokens(p.it, p.pt);
+    });
+  })));
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+
+function translatableHtml(text, sourceLang) {
+  const map = sourceLang === "target" ? DICT.targetToPt : DICT.ptToTarget;
+  const transLang = sourceLang === "target" ? "pt" : "target";
+  return String(text).split(/(\s+)/).map(part => {
+    if (!part.trim()) return escapeHtml(part);
+    const clean = cleanWord(part);
+    const trans = map[dictKey(clean)];
+    if (!clean || !trans) return escapeHtml(part);
+    return escapeHtml(part).replace(escapeHtml(clean), `<span class="word-link" data-trans="${escapeHtml(trans)}" data-lang="${transLang}">${escapeHtml(clean)}</span>`);
+  }).join("");
+}
+
+buildDictionary();
