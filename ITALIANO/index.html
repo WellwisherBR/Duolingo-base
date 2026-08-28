@@ -16,6 +16,10 @@
       <div class="logo">🇮🇹 Italolingo</div>
     </div>
     <div class="stats">
+      <div class="stat-item" title="Vidas">
+        <span class="icon">❤️</span>
+        <span id="stat-hearts" class="stat-val">5</span>
+      </div>
       <div class="stat-item" title="Sequência diária">
         <span class="icon">🔥</span>
         <span id="stat-streak" class="stat-val">0</span>
@@ -69,6 +73,8 @@
 
       <div class="hero-actions">
         <button class="btn btn-blue" id="btn-review">🔁 Revisar</button>
+        <button class="btn btn-purple" id="btn-sim">🌎 Simulações</button>
+        <button class="btn btn-gold" id="btn-certs">🎓 Certificados</button>
       </div>
     </div>
 
@@ -80,6 +86,10 @@
       <button class="btn-icon" id="btn-exit-lesson">✕</button>
       <div class="progress-container">
         <div class="progress-fill" id="lesson-progress-bar" style="width:0%"></div>
+      </div>
+      <span class="lesson-progress-text" id="lesson-progress-text">0%</span>
+      <div class="lesson-hearts">
+        <span>❤️</span> <span id="lesson-hearts-display">5</span>
       </div>
       <div class="lesson-hearts">
         <span>❌</span> <span id="lesson-errors-display">0</span>
@@ -100,11 +110,32 @@
     </footer>
   </section>
 
+  <section id="sim-screen" class="screen">
+    <header class="lesson-header">
+      <button class="btn-icon" id="btn-exit-sim">✕</button>
+      <h2 class="sim-screen-title" id="sim-title">🌎 Simulações</h2>
+    </header>
+    <div class="lesson-content" id="sim-content"></div>
+  </section>
+
+  <div class="modal-overlay" id="certs-modal">
+    <div class="modal">
+      <div class="modal-head">
+        <h2>🎓 Certificados</h2>
+        <button class="btn-icon" id="btn-close-certs">✕</button>
+      </div>
+      <div class="certs-grid" id="certs-grid"></div>
+    </div>
+  </div>
+
+  <div id="cert-print" class="cert-print"></div>
+
   <div id="toast" class="toast"></div>
 
   <script src="js/content.js"></script>
   <script src="js/content_extra.js"></script>
   <script src="js/data.js"></script>
+  <script src="js/simulations.js"></script>
   <script src="js/state.js"></script>
   <script src="js/engine.js"></script>
   <script src="js/app.js"></script>
